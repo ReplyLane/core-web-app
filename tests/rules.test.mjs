@@ -1,0 +1,13 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {matchRule,eligibleWindow} from '../lib/rules.ts';
+const rule={keywords:['LINK','GUIDE'],message:'Your guide',link:'https://creator.example/guide'};
+test('matches case-insensitive whole keywords with punctuation',()=>assert.equal(matchRule(rule,'Please send the link!').matched,true));
+test('does not match keywords inside unrelated words',()=>assert.equal(matchRule(rule,'Blink and miss it').matched,false));
+test('supports phrases and Unicode normalization',()=>assert.equal(matchRule({...rule,keywords:['FREE GUIDE']},'I want a ＦＲＥＥ ＧＵＩＤＥ!').matched,true));
+test('escapes regex characters in keywords',()=>assert.equal(matchRule({...rule,keywords:['C++']},'Send C++ please').matched,true));
+test('excludes opt-out keywords even if they are configured',()=>assert.equal(matchRule({...rule,keywords:['STOP']},' STOP! ').matched,false));
+test('returns the exact reply and link for previews',()=>assert.equal(matchRule(rule,'guide').message,'Your guide\n\nhttps://creator.example/guide'));
+test('normal messaging window expires after 24 hours',()=>{const now=1800000000000;assert.equal(eligibleWindow('message',now-86400000,now),true);assert.equal(eligibleWindow('message',now-86400001,now),false);});
+test('private replies expire after seven days',()=>{const now=1800000000000;assert.equal(eligibleWindow('comment',now-604800000,now),true);assert.equal(eligibleWindow('comment',now-604800001,now),false);});
+test('invalid and future timestamps do not permit messages',()=>{const now=1800000000000;for(const time of [NaN,0,now+600000])assert.equal(eligibleWindow('message',time,now),false);});

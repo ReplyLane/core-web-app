@@ -1,0 +1,15 @@
+import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from "drizzle-orm/sqlite-core";
+export const campaigns=sqliteTable("campaigns",{
+ id:text("id").primaryKey(), userId:text("user_id").notNull(), name:text("name").notNull(), trigger:text("trigger").notNull(), keywords:text("keywords").notNull(), message:text("message").notNull(), link:text("link").notNull().default(""), mediaId:text("media_id").notNull().default(""), enabled:integer("enabled").notNull().default(0), createdAt:integer("created_at").notNull(),
+},t=>[index("idx_campaigns_user").on(t.userId,t.createdAt)]);
+export const accounts=sqliteTable("accounts",{
+ userId:text("user_id").primaryKey(), instagramId:text("instagram_id").notNull(), username:text("username").notNull(), encryptedToken:text("encrypted_token").notNull(), expiresAt:integer("expires_at").notNull(), nextSendAt:integer("next_send_at").notNull().default(0),
+},t=>[uniqueIndex("idx_accounts_instagram").on(t.instagramId)]);
+export const subscriptions=sqliteTable("subscriptions",{
+ userId:text("user_id").primaryKey(), subscriptionId:text("subscription_id").notNull(), interval:text("interval").notNull(), status:text("status").notNull(), currentEnd:integer("current_end").notNull().default(0), cancelAtEnd:integer("cancel_at_end").notNull().default(0), updatedAt:integer("updated_at").notNull().default(0), paymentId:text("payment_id").notNull().default(""),
+},t=>[uniqueIndex("idx_subscriptions_provider").on(t.subscriptionId)]);
+export const activities=sqliteTable("activities",{
+ id:text("id").primaryKey(), userId:text("user_id").notNull(), campaignId:text("campaign_id").notNull().default(""), campaignName:text("campaign_name").notNull(), text:text("text").notNull(), status:text("status").notNull(), reason:text("reason").notNull().default(""), createdAt:integer("created_at").notNull(), test:integer("test").notNull().default(0), recipient:text("recipient").notNull().default(""), trigger:text("trigger").notNull().default(""), eventAt:integer("event_at").notNull().default(0),
+},t=>[index("idx_activities_user").on(t.userId,t.createdAt),index("idx_activities_status").on(t.status,t.createdAt)]);
+export const oauthStates=sqliteTable("oauth_states",{id:text("id").primaryKey(),userId:text("user_id").notNull(),expiresAt:integer("expires_at").notNull()});
+export const usage=sqliteTable("usage",{userId:text("user_id").notNull(),month:text("month").notNull(),sent:integer("sent").notNull().default(0)},t=>[primaryKey({columns:[t.userId,t.month]})]);
