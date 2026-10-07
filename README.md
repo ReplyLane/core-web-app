@@ -5,11 +5,11 @@ A private, persistent first version of an Instagram DM automation SaaS for creat
 ## Implemented
 
 - Responsive workspace, reusable reply templates, drafts, search, editing, pausing and deletion.
-- Comment-to-DM and incoming keyword rules, whole-keyword matching, Unicode normalization and opt-out keyword exclusion.
+- Comment-to-DM and incoming keyword rules, whole-keyword matching, Unicode normalization and persistent recipient opt-outs.
 - Server-backed automation storage and activity logs in D1, separated by authenticated user.
 - Preview and simulation console; tests never send Instagram messages or consume the allowance.
 - Creator plans: USD 2.99/month or USD 24.99/year, 1 account and 1,000 DMs/calendar month (UTC).
-- Guarded Instagram OAuth, encrypted tokens, signed webhooks and durable delivery records.
+- Guarded Instagram OAuth, encrypted tokens, signed webhooks, account disconnection, and durable delivery records.
 - Razorpay hosted subscription checkout, provider plan validation, signed billing webhooks and end-of-period cancellation.
 - Competitor research with direct source links, checked 7 October 2026.
 
@@ -21,8 +21,8 @@ This deployment is owner-private and uses ChatGPT sign-in. It is a working previ
 2. Register Instagram Login redirect URL `/api/instagram/callback`, request basic, comments and messaging permissions, and complete Meta App Review / Advanced Access / business verification as required. Register `/api/webhooks/instagram` and subscribe to comments and messages. Connect a professional account using Settings.
 3. Obtain Razorpay international recurring-payment approval. Set provider credentials and webhook secret. Create USD plans for exactly 299 cents per month and 2499 cents per year (one billing interval each); configure their IDs. Register `/api/webhooks/razorpay`. Payment access only activates after a signed captured-payment notification.
 4. Queue draining requires an authenticated scheduler POST to `/api/deliveries` every 20 seconds using `DELIVERY_WORKER_SECRET`. Configure a scheduler outside the private Sites access boundary after public launch. Each call processes one pending delivery. Events also attempt immediate delivery; sending is paced at no more than 200/hour/account. Keep `LIVE_DELIVERY_ENABLED=false` until the worker, public webhook reachability and sandbox checks are verified.
-5. Reconnect Instagram when tokens expire; automatic token refresh is not implemented. Ambiguous send outcomes are marked `needs_review` and not retried. Their quota stays reserved to avoid exceeding the limit. Review stuck `processing` records manually after unexpected runtime failures; do not reset them blindly.
-6. Publish your actual privacy policy, terms, support contact, refund policy and Meta data-deletion flow. Set retention limits for message text, activity and webhook deduplication records. Complete cross-user authorization and real-provider tests before acquiring paid customers.
+5. Reconnect Instagram when tokens expire; automatic token refresh is not implemented. Ambiguous send outcomes are marked `needs_review` and not retried. Their quota stays reserved to avoid exceeding the limit. The worker marks stale `processing` records for review after two minutes; do not reset them blindly.
+6. Publish your actual privacy policy, terms, support contact, refund policy and Meta data-deletion flow. Set retention limits for message text, activity and webhook deduplication records. The automated suite covers cross-user authorization; complete real-provider sandbox tests before acquiring paid customers.
 
 Current limitations: no story/live/ad triggers, public comment replies, follower gates, lead capture, AI responses, customer email notifications, automatic tax calculation, top-ups, native app packaging, or lifetime checkout. Normal posts and reels and incoming text DMs are the supported trigger scope. The comparison view distinguishes annual effective pricing from month-to-month billing. A 1,000-DM paid allowance competes with LinkDM's free tier, so validate paid value with creators before launch.
 
@@ -36,4 +36,17 @@ Generate schema SQL with `npm run db:generate`. Build once to generate `dist/ser
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_wonderful_excalibur.sql
 ```
 
-Tests: `node --experimental-strip-types --test tests/rules.test.mjs`. Type checking: `npx tsc --noEmit`. Build with the Sites build helper. Generated migrations and their metadata are tracked; applied migrations are immutable.
+Apply every new migration once, including `drizzle/0001_superb_maximus.sql`. Build with the Sites build helper. Generated migrations and their metadata are tracked; applied migrations are immutable.
+
+## Repeatable verification
+
+- `npm test`: rule checks plus backend integration tests against real, isolated in-memory SQLite databases. Tests execute the actual API route implementations; Meta and Razorpay network calls use deterministic test doubles, never real accounts or money.
+- `npm run typecheck`: TypeScript validation.
+- `npm run test:e2e`: Playwright tests on desktop and mobile Chromium. The suite starts the local server when needed, uses the localhost mock sign-in, and checks creation, editing, persistence after reload, keyword tests, activity, filters, deletion confirmation, validation, error recovery, setup screens, mobile navigation, layout overflow, and rejection of forged sign-in headers. macOS uses an installed Chrome browser; on other systems run `npx playwright install chromium` first.
+- Browser traces and JSON results are saved under ignored `.sites-runtime/`. These are local testing artifacts and are not included in the deployed app.
+
+Local browser tests expect unconfigured provider credentials. Use an isolated development environment with `LIVE_DELIVERY_ENABLED=false`. Tests create rules with unique E2E names and remove them after the normal lifecycle; a failed test may leave a draft for inspection.
+
+Provider integration cases include OAuth state ownership/expiry/replay, encrypted token storage, subscription price checks, simultaneous checkout prevention, ambiguous-checkout blocking, captured-payment activation, authorization-only rejection, duplicate/signed/tampered webhooks, full versus partial refunds, cancellation, comment and incoming-message recipients, opt-out persistence, pacing across accounts, expiry, quota limits, server/network failure handling and disconnection. The payment state logic follows [Razorpay webhook validation](https://razorpay.com/docs/webhooks/validate-test/) and [subscription event documentation](https://razorpay.com/docs/webhooks/subscriptions/).
+
+These automated provider cases are mocks. Live Meta account connection and Razorpay test-mode checkout still require approved credentials and publicly reachable signed webhook endpoints; those are separate launch acceptance checks.

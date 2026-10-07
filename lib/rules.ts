@@ -1,7 +1,9 @@
 export type Rule = { keywords:string[]; message:string; link:string };
 const optOut=/^\s*(stop|unsubscribe|cancel|quit|end)\s*[.!]?\s*$/iu;
+export const isOptOut=(text:string)=>optOut.test(text.normalize("NFKC"));
+export function eventTimestamp(value:unknown) { if(typeof value==="string"&&!/^\d+(\.\d+)?$/.test(value))return Date.parse(value);const n=Number(value);return n<100000000000?n*1000:n; }
 export function matchRule(rule:Rule, text:string) {
- if(optOut.test(text)) return {matched:false,reason:"Opt-out keyword: no reply is sent."};
+ if(isOptOut(text)) return {matched:false,reason:"Opt-out keyword: no reply is sent."};
  const normalized=text.normalize("NFKC");
  const matched=rule.keywords.some(k=>{
   const escaped=k.normalize("NFKC").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
