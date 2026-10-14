@@ -29,7 +29,9 @@ export function POST(request:Request){return handle(async()=>{
  const local=await store.prepare("SELECT * FROM subscriptions WHERE subscription_id=?").bind(subscription.id).first<BillingRecord>();
  if(!local){await receipt().run();return json({ok:true});}
  // Charge events have their own watermark: a later activation event must not discard an earlier captured invoice.
- if(createdAt<(event.event==="subscription.charged"?local.payment_event_at:local.event_at)){await receipt().run();return json({ok:true});}
+ // Legacy paid records predate payment_event_at. Their prior event watermark protects the existing payment reference.
+ const chargeWatermark=local.payment_event_at||(local.payment_id&&!local.payment_status&&local.status!=="refunded"?local.event_at:0);
+ if(createdAt<(event.event==="subscription.charged"?chargeWatermark:local.event_at)){await receipt().run();return json({ok:true});}
  const current=await razorpay("/subscriptions/"+subscription.id);
  const expectedPlan=local.interval==="monthly"?runtime().RAZORPAY_MONTHLY_PLAN_ID:runtime().RAZORPAY_YEARLY_PLAN_ID;
  if(current.plan_id!==expectedPlan||!providerStatuses.has(current.status))throw new HttpError(400,"Unexpected payment plan or subscription state.");
