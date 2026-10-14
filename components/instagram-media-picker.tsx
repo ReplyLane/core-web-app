@@ -1,0 +1,10 @@
+"use client";
+import Image from "next/image";
+import { useState } from "react";
+import { Camera, LoaderCircle } from "lucide-react";
+type Media = { id: string; caption: string; type: string; image: string; permalink: string };
+export function InstagramMediaPicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const [media,setMedia]=useState<Media[]>([]),[loaded,setLoaded]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState("");
+  const load=async()=>{setLoading(true);setError("");try{const r=await fetch("/api/instagram/media");const data=await r.json() as {media:Media[];error?:string};if(!r.ok)throw new Error(data.error||"Couldn’t load posts.");setMedia(data.media);setLoaded(true);}catch(e){setError(e instanceof Error?e.message:"Couldn’t load posts.");}finally{setLoading(false);}};
+  return <div className="media-picker"><div className="media-picker-heading"><strong>Choose a post or reel</strong><button type="button" className="text-btn" disabled={loading} onClick={()=>void load()}>{loading?<LoaderCircle size={14} className="animate-spin"/>:<Camera size={14}/>} {loading?"Loading…":loaded?"Refresh posts":"Load my posts"}</button></div>{error&&<p className="media-error" role="alert">{error} <button type="button" className="text-btn" onClick={()=>void load()}>Try again</button></p>}{loaded&&<><label htmlFor="instagram-post" className="sr-only">Instagram post</label><select id="instagram-post" value={value} onChange={e=>onChange(e.target.value)}><option value="">All posts and reels</option>{value&&!media.some(m=>m.id===value)&&<option value={value}>Selected post: {value}</option>}{media.map(m=><option key={m.id} value={m.id}>{m.type==="VIDEO"?"Reel / video":"Post"} · {m.caption}</option>)}</select>{media.length===0&&<p>No posts were returned. Publish a post on Instagram or enter its media ID below.</p>}{media.find(m=>m.id===value)?.image&&<Image unoptimized width={110} height={110} className="selected-post-image" src={media.find(m=>m.id===value)!.image} alt="Selected Instagram post" referrerPolicy="no-referrer"/>}</>}</div>;
+}

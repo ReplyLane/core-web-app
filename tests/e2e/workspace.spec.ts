@@ -1,4 +1,5 @@
 import {test,expect,type Page} from "@playwright/test";
+import {signIn,cleanUp,seedProfile,clearProfile} from "./session";
 
 async function navigate(page:Page,name:string){
  await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -6,7 +7,23 @@ async function navigate(page:Page,name:string){
  await page.getByRole("button",{name:new RegExp("^"+name+"(?: \\d+)?$")}).click();
  await expect(page.getByRole("dialog",{name:"Sidebar"})).toHaveCount(0);
 }
-test.beforeEach(async({page})=>{await page.goto("/");await expect(page.getByRole("heading",{name:"Turn comments into conversations."})).toBeVisible();await expect(page.getByRole("button",{name:"New automation",exact:true})).toBeEnabled();});
+test.beforeEach(async({page,context})=>{await signIn(context);await page.goto("/");await expect(page.getByRole("heading",{name:"Turn comments into conversations."})).toBeVisible();await expect(page.getByRole("button",{name:"New automation",exact:true})).toBeEnabled();});
+test.afterAll(()=>cleanUp());
+
+test("connected profile leads into post selection and automation setup",async({page})=>{
+ seedProfile();try{
+  await page.reload();
+  await expect(page.getByRole("heading",{name:"Test Creator",exact:true})).toBeVisible();
+  await expect(page.getByText("1,234",{exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"Create your first reply",exact:true}).click();
+  await page.route("**/api/instagram/media",route=>route.fulfill({json:{media:[{id:"90001",caption:"Your creator guide",type:"IMAGE",image:"",permalink:""}]}}));
+  await page.getByRole("button",{name:"Load my posts",exact:true}).click();
+  await page.getByLabel("Instagram post",{exact:true}).selectOption("90001");
+  await expect(page.getByLabel("Instagram media ID (optional)",{exact:true})).toHaveValue("90001");
+  await page.screenshot({path:".sites-runtime/automation-setup.png",fullPage:true});
+  await page.getByRole("button",{name:"Cancel",exact:true}).click();
+ }finally{clearProfile();}
+});
 
 test("create, persist, edit, test, search, and delete an automation",async({page})=>{
  const name="E2E guide "+Date.now();

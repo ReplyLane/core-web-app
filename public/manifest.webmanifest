@@ -1,1 +1,12 @@
-{"name":"Replylane","short_name":"Replylane","start_url":"/","display":"standalone","background_color":"#f8fafc","theme_color":"#e15443","icons":[{"src":"/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
+{
+  "name": "ReplyLane.si",
+  "short_name": "ReplyLane.si",
+  "description": "Good conversations go places.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4efe5",
+  "theme_color": "#292b25",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

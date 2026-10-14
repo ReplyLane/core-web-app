@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Replylane — Instagram automations",
-  description: "Turn Instagram comments into conversations with simple automations and clear pricing.",
+  title: "ReplyLane.si — Good conversations go places",
+  description: "A thoughtful workspace for your Instagram conversations. Create keyword replies in your own words, test them, and keep every conversation moving.",
+  applicationName: "ReplyLane.si",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.svg",

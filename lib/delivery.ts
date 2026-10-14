@@ -1,4 +1,5 @@
 import {db,decrypt,month,paid,runtime,settings} from "./server";
+import {graphHost} from "./meta";
 import {eligibleWindow} from "./rules";
 
 export async function deliverOne(userId?:string) {
@@ -27,7 +28,7 @@ export async function deliverOne(userId?:string) {
  const quota=await store.prepare("UPDATE usage SET sent=sent+1 WHERE user_id=? AND month=? AND sent<1000").bind(row.user_id,billingMonth).run();
  if(!quota.meta.changes)return finish("limit_reached","Monthly allowance reached. No overage charge.");
  try {
-  const response=await fetch(`https://graph.instagram.com/${runtime().META_API_VERSION}/${account.instagram_id}/messages`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({recipient:row.trigger==="comment"?{comment_id:row.recipient}:{id:row.recipient},message:{text:campaign.message+(campaign.link?"\n\n"+campaign.link:"")}}),signal:AbortSignal.timeout(12000)});
+  const response=await fetch(`${graphHost(account.provider)}/${runtime().META_API_VERSION}/${account.instagram_id}/messages`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({recipient:row.trigger==="comment"?{comment_id:row.recipient}:{id:row.recipient},message:{text:campaign.message+(campaign.link?"\n\n"+campaign.link:"")}}),signal:AbortSignal.timeout(12000)});
   if(!response.ok){
    // Server errors have ambiguous outcomes; retain the reservation and require review.
    if(response.status>=500)return finish("needs_review","Instagram returned a server error. Not retried; allowance is reserved.");

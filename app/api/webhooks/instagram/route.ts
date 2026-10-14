@@ -1,17 +1,21 @@
-import {constantEqual,db,handle,hmac,HttpError,json,runtime,settings} from "@/lib/server";
+import {constantEqual,db,handle,hmac,HttpError,json,runtime} from "@/lib/server";
 import {matchRule,eligibleWindow,isOptOut,eventTimestamp} from "@/lib/rules";
 import {deliverOne} from "@/lib/delivery";
 export function GET(request:Request){const p=new URL(request.url).searchParams,secret=runtime().META_WEBHOOK_VERIFY_TOKEN;if(secret&&p.get("hub.mode")==="subscribe"&&constantEqual(p.get("hub.verify_token")||"",secret))return new Response(p.get("hub.challenge")||"");return json({error:"Verification failed."},403);}
 export function POST(request:Request){return handle(async()=>{
- const e=runtime();if(!e.META_APP_SECRET||!settings().live)throw new HttpError(503,"Instagram delivery is not enabled.");
+ const e=runtime(),instagramSecret=e.META_WEBHOOK_APP_SECRET||e.META_APP_SECRET;
+ if(!(instagramSecret||e.FACEBOOK_APP_SECRET))throw new HttpError(503,"Instagram webhook setup is not complete.");
  const raw=await request.text();if(raw.length>100000)throw new HttpError(413,"Payload too large.");
- if(!constantEqual("sha256="+await hmac(e.META_APP_SECRET,raw),request.headers.get("x-hub-signature-256")||""))throw new HttpError(401,"Invalid signature.");
+ const signature=request.headers.get("x-hub-signature-256")||"";
+ const validInstagram=!!instagramSecret&&constantEqual("sha256="+await hmac(instagramSecret,raw),signature);
+ const validFacebook=!!e.FACEBOOK_APP_SECRET&&constantEqual("sha256="+await hmac(e.FACEBOOK_APP_SECRET,raw),signature);
+ if(!validInstagram&&!validFacebook)throw new HttpError(401,"Invalid signature.");
  let payload;try{payload=JSON.parse(raw);}catch{throw new HttpError(400,"Invalid webhook JSON.");}
  if(!payload||typeof payload!=="object")throw new HttpError(400,"Invalid webhook payload.");
  if(payload.object!=="instagram")return json({ok:true});
  if(!Array.isArray(payload.entry))throw new HttpError(400,"Webhook entries must be an array.");
  for(const entry of payload.entry){
-  const account=await db().prepare("SELECT user_id,instagram_id FROM accounts WHERE instagram_id=?").bind(String(entry.id)).first<{user_id:string;instagram_id:string}>();if(!account)continue;
+  const account=await db().prepare("SELECT user_id,instagram_id,provider FROM accounts WHERE instagram_id=?").bind(String(entry.id)).first<{user_id:string;instagram_id:string;provider:string}>();if(!account||(account.provider==="facebook"?!validFacebook:!validInstagram))continue;
   const changes=(Array.isArray(entry.changes)?entry.changes:[]).filter((c:Record<string,any>)=>c.field==="comments").map((c:Record<string,any>)=>({id:String(c.value?.id||""),text:String(c.value?.text||""),recipient:String(c.value?.id||""),sender:String(c.value?.from?.id||""),mediaId:String(c.value?.media?.id||""),trigger:"comment",timestamp:eventTimestamp(c.value?.created_time??entry.time)}));
   const messages=(Array.isArray(entry.messaging)?entry.messaging:[]).filter((m:Record<string,any>)=>m.message?.text&&!m.message?.is_echo&&String(m.sender?.id)!==account.instagram_id).map((m:Record<string,any>)=>({id:String(m.message.mid||""),text:String(m.message.text),recipient:String(m.sender?.id||""),sender:String(m.sender?.id||""),mediaId:"",trigger:"message",timestamp:eventTimestamp(m.timestamp)}));
   for(const event of [...changes,...messages]){

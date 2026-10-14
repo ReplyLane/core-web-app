@@ -15,6 +15,20 @@
       "when": 1791365169678,
       "tag": "0001_superb_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792009409573,
+      "tag": "0002_shiny_thor_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1792015290911,
+      "tag": "0003_subscription_tracking",
+      "breakpoints": true
     }
   ]
 }
