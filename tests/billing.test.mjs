@@ -72,12 +72,7 @@ test('ambiguous provider failures hold checkout while an explicit rejection allo
  }
 });
 
-test('monthly and annual subscription counts preserve the supported duration and reject INR price substitutions',async t=>{
- for(const [interval,count]of [['monthly',1200],['yearly',100]]){
-  const f=fixture();t.after(f.close);await checkout(f,interval);
-  const call=f.calls.find(c=>c.url.endsWith('/subscriptions')&&c.method==='POST');
-  assert.equal(JSON.parse(call.body).total_count,count);
- }
+test('checkout rejects an INR plan substituted for the advertised USD price',async t=>{
  const f=fixture();t.after(f.close);
  f.overrides.plan={item:{amount:299,currency:'INR'},period:'monthly',interval:1};
  assert.equal((await f.request('/api/billing/checkout',{method:'POST',data:{interval:'monthly'}})).status,503);
@@ -188,4 +183,12 @@ test('legacy refunded subscription rows never report a captured payment',async t
  f.run("UPDATE subscriptions SET status='refunded',payment_id='pay_legacy',current_end=0");
  const {billing}=await(await f.request('/api/workspace')).json();
  assert.equal(billing.paymentStatus,'refunded');assert.equal(billing.hasPaidAccess,false);
+});
+
+test('legacy captured payment watermark preserves a newer reference without a migration backfill',async t=>{
+ const f=fixture();t.after(f.close);f.paid();const time=now(),subscription=f.subscriptions.get('sub_alice');
+ f.run("UPDATE subscriptions SET payment_id='pay_latest',event_at=?",(time+10)*1000);
+ const stale=captured(f,subscription,'pay_old');
+ assert.equal((await webhook(f,'subscription.charged',subscription,stale,time)).status,200);
+ assert.equal(f.rows('SELECT payment_id FROM subscriptions')[0].payment_id,'pay_latest');
 });

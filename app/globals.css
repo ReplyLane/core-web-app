@@ -231,7 +231,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .replylane-brand { gap:9px; text-decoration:none; line-height:1; font-size:24px; letter-spacing:-1.1px; font-weight:650; white-space:nowrap; }
 .replylane-brand .lane-mark { flex-shrink:0; }
 .brand-domain { color:var(--brand-clay); font-weight:450; }
-.sidebar-signature { font-size:8px; letter-spacing:1.5px; color:#777b6e; margin-top:13px; white-space:nowrap; }
+.sidebar-signature { font-size:7px; letter-spacing:1.1px; color:#777b6e; margin-top:13px; white-space:nowrap; }
 .side-nav [data-slot=sidebar-menu-button] { border-radius:4px; height:44px; font-size:13px; }
 .side-nav [data-active=true] { color:#8f432b; background:#e9e3d7; box-shadow:inset 2px 0 #b75a3c; }
 .nav-heading { font-size:9px; font-weight:600; letter-spacing:1.8px; margin:26px 27px 12px; color:#75796c; }

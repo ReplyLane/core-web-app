@@ -89,8 +89,15 @@ test("invalid input stays in the editor and explains the error",async({page})=>{
 
 test("Instagram and billing show honest setup states",async({page})=>{
  await page.getByRole("button",{name:"Connect Instagram",exact:true}).click();
- await expect(page.getByRole("dialog")).toContainText("Meta configuration");
- await page.getByRole("button",{name:"View setup checklist",exact:true}).click();
+ const checklist=page.getByRole("button",{name:"View setup checklist",exact:true});
+ if(await checklist.count()){
+  await expect(page.getByRole("dialog")).toContainText("Meta configuration");
+  await checklist.click();
+ }else{
+  await expect(page.getByRole("dialog").getByRole("link",{name:"Continue with Instagram",exact:true}).or(page.getByRole("dialog").getByRole("link",{name:"Continue with Facebook",exact:true})).first()).toBeVisible();
+  await page.getByRole("button",{name:"Close",exact:true}).click();
+  await navigate(page,"Settings");
+ }
  await expect(page.getByRole("heading",{name:"Launch checklist"})).toBeVisible();
  await navigate(page,"Plan & billing");
  await expect(page.getByText("$2.99",{exact:false}).first()).toBeVisible();

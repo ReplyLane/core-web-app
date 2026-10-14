@@ -17,6 +17,8 @@ async function openBilling(page: Page, billing: object) {
   });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Turn comments into conversations." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "New automation", exact: true })).toBeEnabled();
+  if(test.info().title.startsWith("confirmed payment"))await page.screenshot({path:`.sites-runtime/workspace-${test.info().project.name}.png`,fullPage:true});
   const menu = page.getByRole("button", { name: "Toggle Sidebar" });
   if (await menu.isVisible()) await menu.click();
   await page.getByRole("button", { name: "Plan & billing", exact: true }).click();

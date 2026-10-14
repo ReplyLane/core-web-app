@@ -3,8 +3,11 @@ import {test,expect} from "@playwright/test";
 test("anonymous visitors see social sign-in and cannot use forged identity headers",async({page,request})=>{
  await page.goto("/");
  await expect(page.getByRole("heading",{name:"Welcome to your lane.",exact:true})).toBeVisible();
- await expect(page.getByRole("button",{name:"Instagram login coming soon",exact:true})).toBeDisabled();
- await expect(page.getByRole("button",{name:"Facebook login coming soon",exact:true})).toBeDisabled();
+ for(const provider of [{name:"Instagram",path:"instagram"},{name:"Facebook",path:"facebook"}]){
+  const configured=page.getByRole("link",{name:`Continue with ${provider.name}`,exact:true});
+  if(await configured.count())await expect(configured).toHaveAttribute("href",`/api/${provider.path}/connect?intent=login`);
+  else await expect(page.getByRole("button",{name:`${provider.name} login coming soon`,exact:true})).toBeDisabled();
+ }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  await page.screenshot({path:".sites-runtime/social-login.png",fullPage:true});
  const response=await request.get("/api/workspace",{headers:{"oai-authenticated-user-id":"forged","oai-authenticated-user-email":"forged@test.example"}});expect(response.status()).toBe(401);
