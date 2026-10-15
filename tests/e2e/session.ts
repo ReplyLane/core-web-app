@@ -27,5 +27,5 @@ export function seedProfile() {
 }
 export function clearProfile() { const db=database();try { db.prepare("DELETE FROM accounts WHERE user_id=?").run(testUser); } finally { db.close(); } }
 export function cleanUp() {
-  const db=database();try { for(const table of ["auth_sessions","auth_identities","accounts","campaigns","activities","usage","opt_outs","owner_trials"])db.prepare(`DELETE FROM ${table} WHERE user_id=?`).run(testUser);db.prepare("DELETE FROM auth_users WHERE id=?").run(testUser); } finally { db.close(); }
+  const db=database();try { for(const table of ["auth_sessions","auth_identities","accounts","campaigns","activities","usage","opt_outs","owner_trials","review_trials"])db.prepare(`DELETE FROM ${table} WHERE user_id=?`).run(testUser);db.prepare("DELETE FROM auth_users WHERE id=?").run(testUser); } finally { db.close(); }
 }
