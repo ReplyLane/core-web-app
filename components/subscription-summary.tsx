@@ -85,7 +85,7 @@ export function SubscriptionSummary({ billing, busy, onRefresh, onResume, onCanc
       <div><dt>Subscription reference</dt><dd><code>{billing.subscriptionId || "Awaiting checkout confirmation"}</code></dd></div>
       <div><dt>Latest payment</dt><dd>{paymentLabels[billing.paymentStatus] || "Payment update pending"}{billing.paymentId && <><br /><code>{billing.paymentId}</code></>}</dd></div>
     </dl>
-    <p className="billing-current-note">{note} {["checkout_uncertain", "creating", "halted"].includes(billing.status) && <a href="mailto:reply.lane.app@gmail.com">Contact support ↗</a>}</p>
+    <p className="billing-current-note">{note} {["checkout_uncertain", "creating", "halted"].includes(billing.status) && <a href="mailto:hello@replylane.si">Contact support ↗</a>}</p>
     <div className="billing-summary-buttons">
       {billing.canResumeCheckout && <button className="primary-btn" disabled={busy} onClick={onResume}>Continue checkout<ChevronRight size={14} /></button>}
       {billing.canCancel && <button className="text-btn" disabled={busy} onClick={onCancel}>{billing.status === "created" ? "Cancel checkout" : "Stop future billing"}</button>}

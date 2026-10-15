@@ -17,7 +17,7 @@ This checkout uses standard Next.js App Router on Node.js 24, with Turso/libSQL 
 
 ## Social sign-in and Instagram onboarding
 
-The landing page belongs at `https://replylane.si`; the signed-in app belongs at `https://app.replylane.si`. Use `https://app.replylane.si` for the production `APP_ORIGIN`. The Meta app contact is `reply.lane.app@gmail.com`. The Meta development app is **ReplyLane** (`1113566377838569`), and its Instagram Login app ID is `29028825036747355`. These are different identifiers: use the Instagram Login ID for `META_APP_ID`. App secrets belong only in ignored local environment files or the hosting secret manager.
+The landing page belongs at `https://replylane.si`; the signed-in app belongs at `https://app.replylane.si`. Use `https://app.replylane.si` for the production `APP_ORIGIN`. The Meta app contact is `hello@replylane.si`. The Meta development app is **ReplyLane** (`1113566377838569`), and its Instagram Login app ID is `29028825036747355`. These are different identifiers: use the Instagram Login ID for `META_APP_ID`. App secrets belong only in ignored local environment files or the hosting secret manager.
 
 Meta Social Technologies MCP is an administration connection for checking app setup and configuring webhooks. It does not replace customer OAuth or the Graph API calls used by ReplyLane.si. Its official endpoint is `https://mcp.facebook.com/devtools`. For the current account, app creation is still performed in the Meta dashboard; the connected MCP exposes documentation, app inspection, review/compliance, API health, and webhook tools.
 

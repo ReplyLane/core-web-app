@@ -59,7 +59,7 @@ test("uncertain checkout explains recovery and prevents a second mandate", async
   const summary = page.getByRole("region", { name: "Your subscription" });
   await expect(summary).toContainText("Checkout needs review");
   await expect(summary).toContainText("avoid duplicate billing");
-  await expect(summary.getByRole("link", { name: "Contact support" })).toHaveAttribute("href", "mailto:reply.lane.app@gmail.com");
+  await expect(summary.getByRole("link", { name: "Contact support" })).toHaveAttribute("href", "mailto:hello@replylane.si");
   const buttons = page.getByRole("button", { name: "Manage current subscription", exact: true });
   await expect(buttons).toHaveCount(2);
   for (const button of await buttons.all()) await expect(button).toBeDisabled();
