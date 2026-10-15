@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { FacebookIcon } from "@/components/facebook-icon";
 import { LaneMark, ReplyLaneBrand } from "@/components/replylane-brand";
 import { ArrowRight, Camera, Check, ShieldCheck } from "lucide-react";
@@ -72,6 +73,7 @@ export default function Login({ instagram, facebook }: { instagram: boolean; fac
             <span><Check size={15} />Instagram Business or Creator account</span>
             <span><Check size={15} />For Facebook: a linked Facebook Page</span>
           </div>
+          <p className="login-availability"><Link href="/privacy">Privacy notice</Link> · <Link href="/data-deletion">Data deletion</Link> · <a href="mailto:hello@replylane.si">Contact</a></p>
           <div className="login-trust"><ShieldCheck size={18} /><span>Your password stays with Instagram or Facebook. ReplyLane.si receives only the access you approve.</span></div>
         </section>
       </div>
