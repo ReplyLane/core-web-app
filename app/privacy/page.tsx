@@ -7,7 +7,7 @@ export default function PrivacyPage(){
  return <PolicyPage title="Privacy notice">
   <p>Replylane provides Instagram sign-in, profile import and keyword-based reply automation. This notice explains the information processed by replylane.si and app.replylane.si.</p>
   <h2>Who to contact</h2>
-  <p>Replylane is operated by Deepanshu Prajapati, based in India. Contact <a href="mailto:hello@replylane.si">hello@replylane.si</a> about this notice, access to your information or deletion requests.</p>
+  <p>Replylane is operated by BlockC School Private Limited, based in India. Contact <a href="mailto:hello@replylane.si">hello@replylane.si</a> about this notice, access to your information or deletion requests.</p>
   <h2>Information we process</h2>
   <ul>
    <li><strong>Connected account:</strong> Instagram account identifiers, username, display name, profile image URL, follower and post counts, and connection status. When you select a post, we request its available details from Instagram and save the selected post identifier with your automation.</li>
