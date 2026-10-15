@@ -14,7 +14,7 @@ test("anonymous visitors see social sign-in and cannot use forged identity heade
 });
 test("expired Facebook selection shows a recoverable error",async({page})=>{
  await page.goto("/connect/facebook");
- await expect(page.getByRole("alert")).toContainText("Sign-in expired");
+ await expect(page.getByRole("main").getByRole("alert")).toContainText("Sign-in expired");
  await page.getByRole("link",{name:"Back to sign-in"}).click();
  await expect(page.getByRole("heading",{name:"Welcome to your lane.",exact:true})).toBeVisible();
 });

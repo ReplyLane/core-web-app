@@ -4,6 +4,17 @@
 
 Super Intelligence is the brand philosophy: helping people work with clarity, care, and control. The current app uses messages written by the creator and explicit keyword rules, with previews, simulation, and delivery controls.
 
+## Deploy on Vercel
+
+This checkout uses standard Next.js App Router on Node.js 24, with Turso/libSQL for persistent SQLite storage. `vercel.json` selects the Next.js framework and standard npm build. The root domain serves the landing page; the app subdomain serves social sign-in and the workspace.
+
+1. Import `ReplyLane/core-web-app` into Vercel or use the existing `core-web-app` project.
+2. Connect a Turso database and set `TURSO_DATABASE_URL` and secret `TURSO_AUTH_TOKEN`. Never use a local file database on Vercel.
+3. Configure the server environment values listed in `.env.example`, with `AUTH_MODE=meta`, `APP_ORIGIN=https://app.replylane.si`, and `LIVE_DELIVERY_ENABLED=false` initially. Keep all provider secrets and the encryption key server-only.
+4. Apply migrations to the selected database with `npm run db:migrate` from a trusted local environment. The migration runner records applied migrations; do not apply the same SQL manually afterward. Database provisioning does not copy data from a previous D1 database.
+5. Deploy the tested source and attach `replylane.si` and `app.replylane.si`. Use the exact DNS targets shown by Vercel for this project, preserving email records.
+6. Verify public HTTPS, Instagram OAuth, and signed webhooks before enabling delivery. Configure any Vercel Deployment Protection so Meta can reach the production callback and webhook.
+
 ## Social sign-in and Instagram onboarding
 
 The landing page belongs at `https://replylane.si`; the signed-in app belongs at `https://app.replylane.si`. Use `https://app.replylane.si` for the production `APP_ORIGIN`. The Meta app contact is `reply.lane.app@gmail.com`. The Meta development app is **ReplyLane** (`1113566377838569`), and its Instagram Login app ID is `29028825036747355`. These are different identifiers: use the Instagram Login ID for `META_APP_ID`. App secrets belong only in ignored local environment files or the hosting secret manager.
@@ -25,7 +36,7 @@ Meta credentials are not included. To activate real sign-in:
 
 Sessions use random, hashed database tokens and HttpOnly, SameSite=Lax cookies (Secure on HTTPS), expire after 30 days, rotate on sign-in, and are revoked on sign-out. OAuth state and temporary account choices expire after 10 minutes and are bound to the starting browser. Provider access tokens and pending Page tokens are encrypted and never returned to the client. Accounts are not merged by username or email. To add a second login method, sign in through the original method and use Settings to connect it to the same Instagram account; conflicting ownership is rejected. Different provider-scoped Instagram identifiers cannot be assumed to represent the same account.
 
-`AUTH_MODE=hosting` is an explicit compatibility option for deployments where a trusted dispatcher supplies verified identity headers. Never enable it on an unprotected origin that accepts client-supplied identity headers. The local server strips those headers. The social-login mode ignores hosting identity headers. An owner-private Sites deployment still has its own platform access boundary; app-level social login does not remove it. Before deploying this flow there, confirm the host supports unauthenticated access to the OAuth callbacks, sign-in page, and provider webhooks. No hosted audience or deployment was changed by this local implementation.
+`AUTH_MODE=hosting` is an explicit compatibility option for deployments where a trusted dispatcher supplies verified identity headers. Never enable it on an unprotected origin that accepts client-supplied identity headers. Keep `AUTH_MODE=meta` on Vercel: this mode ignores hosting identity headers. Provider callbacks and webhooks must be publicly reachable.
 
 Reference: [Meta's Page-token and linked Instagram account flow](https://www.postman.com/meta/instagram/request/lpx8lul/get-access-tokens-of-pages-you-manage).
 
@@ -33,7 +44,7 @@ Reference: [Meta's Page-token and linked Instagram account flow](https://www.pos
 
 - Responsive workspace, reusable reply templates, drafts, search, editing, pausing and deletion.
 - Comment-to-DM and incoming keyword rules, whole-keyword matching, Unicode normalization and persistent recipient opt-outs.
-- Server-backed automation storage and activity logs in D1, separated by authenticated user.
+- Server-backed automation storage and activity logs in Turso/libSQL, separated by authenticated user.
 - Preview and simulation console; tests never send Instagram messages or consume the allowance.
 - Creator plans: USD 2.99/month or USD 24.99/year, 1 account and 1,000 DMs/calendar month (UTC).
 - Guarded Instagram OAuth, encrypted tokens, signed webhooks, account disconnection, and durable delivery records.
@@ -52,12 +63,12 @@ See [payment setup, KYC, settlement, and subscription tracking](docs/PAYMENTS.md
 
 ## Before live customer launch
 
-This remains a working preview until Meta and billing credentials and public provider endpoints are configured. If deployed with an owner-private Sites audience, the platform access boundary prevents external provider calls. Configure hosting access deliberately after completing the following setup and provider sandbox tests.
+This remains a working preview until Meta and billing credentials and public provider endpoints are configured. Deployment Protection can prevent external provider calls. Configure hosting access deliberately after completing the following setup and provider sandbox tests.
 
-1. Configure `APP_ORIGIN` to the hosted HTTPS origin. Set `META_APP_ID`, `META_APP_SECRET`, a supported `META_API_VERSION` from the Meta app dashboard, a random `META_WEBHOOK_VERIFY_TOKEN`, and `TOKEN_ENCRYPTION_KEY` (base64-encoded 32 random bytes). Store hosted secrets using Sites environment settings; never put them in client code or Git.
+1. Configure `APP_ORIGIN` to the hosted HTTPS origin. Set `META_APP_ID`, `META_APP_SECRET`, a supported `META_API_VERSION` from the Meta app dashboard, a random `META_WEBHOOK_VERIFY_TOKEN`, and `TOKEN_ENCRYPTION_KEY` (base64-encoded 32 random bytes). Store hosted secrets using Vercel environment settings; never put them in client code or Git.
 2. Register Instagram Login redirect URL `/api/instagram/callback`, request basic, comments and messaging permissions, and complete Meta App Review / Advanced Access / business verification as required. Register `/api/webhooks/instagram` and subscribe to comments and messages. Connect a professional account using Settings.
 3. Obtain Razorpay international recurring-payment approval. Set provider credentials and webhook secret. Create USD plans for exactly 299 cents per month and 2499 cents per year (one billing interval each); configure their IDs. Register `/api/webhooks/razorpay`. Payment access only activates after a signed captured-payment notification.
-4. Queue draining requires an authenticated scheduler POST to `/api/deliveries` every 20 seconds using `DELIVERY_WORKER_SECRET`. Configure a scheduler outside the private Sites access boundary after public launch. Each call processes one pending delivery. Events also attempt immediate delivery; sending is paced at no more than 200/hour/account. Keep `LIVE_DELIVERY_ENABLED=false` until the worker, public webhook reachability and sandbox checks are verified.
+4. Queue draining requires an authenticated scheduler POST to `/api/deliveries` every 20 seconds using `DELIVERY_WORKER_SECRET`. Configure a scheduler with access to the public endpoint after public launch. Each call processes one pending delivery. Events also attempt immediate delivery; sending is paced at no more than 200/hour/account. Keep `LIVE_DELIVERY_ENABLED=false` until the worker, public webhook reachability and sandbox checks are verified.
 5. Reconnect Instagram when tokens expire; automatic token refresh is not implemented. Ambiguous send outcomes are marked `needs_review` and not retried. Their quota stays reserved to avoid exceeding the limit. The worker marks stale `processing` records for review after two minutes; do not reset them blindly.
 6. Publish your actual privacy policy, terms, support contact, refund policy and Meta data-deletion flow. Set retention limits for message text, activity and webhook deduplication records. The automated suite covers cross-user authorization; complete real-provider sandbox tests before acquiring paid customers.
 
@@ -65,15 +76,9 @@ Current limitations: no story/live/ad triggers, public comment replies, follower
 
 ## Local development
 
-Requires Node 22.13+ and npm. Copy `.env.example` to `.env`; leave delivery disabled for local testing. `npm run dev` starts the social sign-in page. API access requires a valid ReplyLane.si session by default. The starter's localhost-only hosting mock remains available only with explicit `AUTH_MODE=hosting`; social mode ignores it. The application has no anonymous identity fallback.
+Requires Node.js 24 and npm. Copy `.env.example` to `.env`, set `TURSO_DATABASE_URL=file:.sites-runtime/replylane.db` for local development (or use a separate remote development database), set `APP_ORIGIN=http://127.0.0.1:5173`, and keep delivery disabled. Create the `.sites-runtime` directory, run `npm run db:migrate`, then `npm run dev`.
 
-Generate schema SQL with `npm run db:generate`. Build once to generate `dist/server/wrangler.json`; then apply each migration locally:
-
-```sh
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_wonderful_excalibur.sql
-```
-
-Apply every new migration once, in order: `drizzle/0001_superb_maximus.sql`, `drizzle/0002_shiny_thor_girl.sql`, then `drizzle/0003_subscription_tracking.sql`. Build with the Sites build helper. Generated migrations and their metadata are tracked; applied migrations are immutable.
+`npm run build` runs the standard Next.js production build, and `npm start` serves it. Generate schema changes with `npm run db:generate`, inspect the new SQL, then apply with `npm run db:migrate`. Keep applied migrations immutable. The API requires a valid app session; it has no anonymous identity fallback.
 
 ## Repeatable verification
 

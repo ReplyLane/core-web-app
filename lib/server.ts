@@ -1,8 +1,9 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime";
+import type { Database } from "./database";
 import { z } from "zod";
 import { sessionUser } from "./auth";
 import { hasPaidAccess } from "./billing";
-export type Runtime={DB?:D1Database;AUTH_MODE?:string;APP_ORIGIN?:string;META_APP_ID?:string;META_APP_SECRET?:string;META_WEBHOOK_APP_SECRET?:string;FACEBOOK_APP_ID?:string;FACEBOOK_APP_SECRET?:string;FACEBOOK_LOGIN_CONFIG_ID?:string;META_WEBHOOK_VERIFY_TOKEN?:string;TOKEN_ENCRYPTION_KEY?:string;META_API_VERSION?:string;LIVE_DELIVERY_ENABLED?:string;RAZORPAY_KEY_ID?:string;RAZORPAY_KEY_SECRET?:string;RAZORPAY_WEBHOOK_SECRET?:string;RAZORPAY_MONTHLY_PLAN_ID?:string;RAZORPAY_YEARLY_PLAN_ID?:string;DELIVERY_WORKER_SECRET?:string};
+export type Runtime={DB?:Database;AUTH_MODE?:string;APP_ORIGIN?:string;META_APP_ID?:string;META_APP_SECRET?:string;META_WEBHOOK_APP_SECRET?:string;FACEBOOK_APP_ID?:string;FACEBOOK_APP_SECRET?:string;FACEBOOK_LOGIN_CONFIG_ID?:string;META_WEBHOOK_VERIFY_TOKEN?:string;TOKEN_ENCRYPTION_KEY?:string;META_API_VERSION?:string;LIVE_DELIVERY_ENABLED?:string;RAZORPAY_KEY_ID?:string;RAZORPAY_KEY_SECRET?:string;RAZORPAY_WEBHOOK_SECRET?:string;RAZORPAY_MONTHLY_PLAN_ID?:string;RAZORPAY_YEARLY_PLAN_ID?:string;DELIVERY_WORKER_SECRET?:string};
 export const runtime=()=>env as unknown as Runtime;
 export const settings=()=>{const e=runtime();const common=!!(e.APP_ORIGIN&&/^v\d+\.\d+$/.test(e.META_API_VERSION||"")&&e.TOKEN_ENCRYPTION_KEY);return {instagram:common&&!!(e.META_APP_ID&&e.META_APP_SECRET),facebook:common&&!!(e.FACEBOOK_APP_ID&&e.FACEBOOK_APP_SECRET&&e.FACEBOOK_LOGIN_CONFIG_ID),payments:!!(e.RAZORPAY_KEY_ID&&e.RAZORPAY_KEY_SECRET&&e.RAZORPAY_WEBHOOK_SECRET&&e.RAZORPAY_MONTHLY_PLAN_ID&&e.RAZORPAY_YEARLY_PLAN_ID),live:e.LIVE_DELIVERY_ENABLED==="true"&&!!(e.META_WEBHOOK_VERIFY_TOKEN&&(e.META_WEBHOOK_APP_SECRET||e.META_APP_SECRET||e.FACEBOOK_APP_SECRET)&&e.META_API_VERSION&&e.TOKEN_ENCRYPTION_KEY&&e.APP_ORIGIN)};};
 export function db(){const d=runtime().DB;if(!d)throw new Error("Your workspace storage is not available yet. Please try again shortly.");return d;}

@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { readdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { createHash, randomBytes } from "node:crypto";
 import type { BrowserContext } from "@playwright/test";
@@ -8,14 +8,11 @@ import type { BrowserContext } from "@playwright/test";
 // endpoint or test credentials are exposed by the application.
 export const testUser = "e2e_social_" + process.pid;
 function database() {
-  const directory = resolve(".wrangler/state/v3/d1/miniflare-D1DatabaseObject");
-  const files = readdirSync(directory).filter(file => /^[a-f0-9]+\.sqlite$/.test(file));
-  for (const file of files) {
-    const db = new DatabaseSync(resolve(directory, file));
-    if (db.prepare("SELECT name FROM sqlite_master WHERE name='auth_users'").get()) { db.exec("PRAGMA busy_timeout=5000"); return db; }
-    db.close();
-  }
-  throw new Error("Apply the local D1 migrations before running browser tests.");
+  const path = resolve(process.env.E2E_DATABASE_PATH || ".sites-runtime/replylane.db");
+  if (!existsSync(path)) throw new Error("Apply local migrations with npm run db:migrate before browser tests.");
+  const db = new DatabaseSync(path);
+  db.exec("PRAGMA busy_timeout=5000");
+  return db;
 }
 export async function signIn(context: BrowserContext) {
   const token = randomBytes(32).toString("hex"), db = database();

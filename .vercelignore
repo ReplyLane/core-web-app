@@ -1,0 +1,10 @@
+.env*
+!.env.example
+.openai/
+.wrangler/
+.sites-runtime/
+.next/
+dist/
+coverage/
+outputs/
+work/
