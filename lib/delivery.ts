@@ -1,4 +1,5 @@
-import {db,decrypt,month,paid,runtime,settings} from "./server";
+import {sendingAccess,reserveTrial,releaseTrial} from "./access";
+import {db,decrypt,month,runtime,settings} from "./server";
 import {graphHost} from "./meta";
 import {eligibleWindow} from "./rules";
 
@@ -17,7 +18,8 @@ export async function deliverOne(userId?:string) {
  if(!eligibleWindow(row.trigger,row.event_at))return finish("expired","Instagram’s reply window has expired.");
  const optOut=await store.prepare("SELECT recipient FROM opt_outs WHERE user_id=? AND recipient=?").bind(row.user_id,row.sender_id).first();
  if(optOut)return finish("skipped","This person opted out of automated replies.");
- if(!await paid(row.user_id))return finish("skipped","A paid subscription is required.");
+ const access=await sendingAccess(row.user_id);
+ if(!access.canSend)return finish("skipped",access.trial?"Owner trial expired or allowance used.":"A paid subscription is required.");
  const account=await store.prepare("SELECT * FROM accounts WHERE user_id=?").bind(row.user_id).first<Record<string,any>>();
  if(!account||account.expires_at<=now)return finish("skipped","Reconnect Instagram.");
  let token:string;try{token=await decrypt(account.encrypted_token);}catch{return finish("failed","The account token could not be read. Reconnect Instagram.");}
@@ -27,12 +29,18 @@ export async function deliverOne(userId?:string) {
  await store.prepare("INSERT INTO usage(user_id,month,sent) VALUES(?,?,0) ON CONFLICT(user_id,month) DO NOTHING").bind(row.user_id,billingMonth).run();
  const quota=await store.prepare("UPDATE usage SET sent=sent+1 WHERE user_id=? AND month=? AND sent<1000").bind(row.user_id,billingMonth).run();
  if(!quota.meta.changes)return finish("limit_reached","Monthly allowance reached. No overage charge.");
+ const trial=access.mode==="owner_trial";
+ if(trial&&!await reserveTrial(row.user_id,account.instagram_id)){
+  await store.prepare("UPDATE usage SET sent=MAX(0,sent-1) WHERE user_id=? AND month=?").bind(row.user_id,billingMonth).run();
+  return finish("limit_reached","Owner trial expired or its 25-DM allowance was reached.");
+ }
  try {
   const response=await fetch(`${graphHost(account.provider)}/${runtime().META_API_VERSION}/${account.instagram_id}/messages`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({recipient:row.trigger==="comment"?{comment_id:row.recipient}:{id:row.recipient},message:{text:campaign.message+(campaign.link?"\n\n"+campaign.link:"")}}),signal:AbortSignal.timeout(12000)});
   if(!response.ok){
    // Server errors have ambiguous outcomes; retain the reservation and require review.
    if(response.status>=500)return finish("needs_review","Instagram returned a server error. Not retried; allowance is reserved.");
    await store.prepare("UPDATE usage SET sent=MAX(0,sent-1) WHERE user_id=? AND month=?").bind(row.user_id,billingMonth).run();
+   if(trial)await releaseTrial(row.user_id);
    return finish("failed",`Instagram rejected the message (${response.status}).`);
   }
   return finish("sent","Instagram accepted the message.");
