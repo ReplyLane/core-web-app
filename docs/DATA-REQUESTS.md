@@ -1,10 +1,12 @@
-# Draft procedure for public authority data requests
+# Procedure for public authority data requests
 
 **Operator:** BlockC School Private Limited  
 **Responsible person:** Deepanshu Prajapati  
 **Service:** Replylane  
 **Prepared:** 15 October 2026  
-**Status:** Awaiting operator adoption. Do not claim these procedures are implemented in Meta's forms until the operator adopts them and assigns restricted case-record storage.
+**Status:** Adopted by Deepanshu Prajapati on behalf of BlockC School Private Limited on 16 October 2026 (India). The operator confirmed responsibility for this procedure and the prepared restricted records folder.
+
+**Records location:** `.sites-runtime/data-requests/` on the operator’s computer, with directory permissions 0700 and files 0600. Git and Vercel exclude this directory. The operator is responsible for restricted backups and case-specific retention; this local directory is not hosted case management.
 
 This procedure covers requests from public authorities for personal information received through Replylane's Meta integration. It requires an individual review before any disclosure. Historical disclosures must be reported from actual records; adopting this procedure does not answer Meta's question about the previous 12 months.
 
@@ -28,11 +30,11 @@ For an authorized disclosure, identify the specific account, date range and fiel
 
 The restricted case record must contain the request reference, verified authority, legal basis, scope, review participants, legal reasoning, decision, any challenge, approved fields and period, disclosure date, recipient, transmission method, user-notification decision and closure outcome. Store the minimum necessary identifiers and references; avoid copying customer content into the record unless needed for the case. Restrict access to the operator and specifically authorized legal advisers. Assign a retention period appropriate to the case and applicable obligations.
 
-## Adoption checklist
+## Operator responsibilities
 
-- The operator confirms responsibility for applying this procedure.
-- A restricted location for case records and access permissions is assigned.
-- The operator records the adoption date and any existing cases.
-- Answers about previous government requests are confirmed separately from company records.
+- Apply this procedure to each request and record the responsible decision-makers.
+- Keep case records in the assigned restricted location; authorize additional access only when needed.
+- Record this adoption and any subsequent cases. The private adoption record is kept with the restricted records.
+- Confirm historical questionnaire answers separately. The operator has stated that there were no national-security disclosures of Meta user data in the preceding 12 months, excluding criminal-investigation warrants and court orders. This is the operator’s confirmation, not an independent audit.
 
 This procedure supports the policy areas requested in [Meta's data-handling questionnaire](https://developers.facebook.com/docs/resp-plat-initiatives/data-access-renewal/tutorial#data-handling-questions). It does not establish the validity of an individual legal request.

@@ -2,13 +2,13 @@
 
 Operator: BlockC School Private Limited, India. Contact: hello@replylane.si.
 
-Status checked 15 October 2026: the Meta app is published; business verification is **In review**. The App Review submission is a draft. Tech Provider access verification is disabled until business verification finishes. Meta subsequently required developer account confirmation. Resolve that prompt before further dashboard edits; do not resubmit the company verification.
+Status checked 16 October 2026 (India): the Meta app is published and company business verification is **Verified**. The developer account confirmation block has cleared. Tech Provider access verification has been submitted and is **In review**; this is separate from permission App Review, whose submission remains a draft. Do not resubmit company verification or claim Tech Provider access has been approved.
 
 ## Requested permissions
 
 Request only `instagram_business_basic`, `instagram_business_manage_messages` and `instagram_business_manage_comments` for the direct Instagram Login integration. The review draft also includes Meta's default `public_profile` entry. The legacy `instagram_manage_comments` request was removed from the draft; it is not the direct Instagram Login scope used by this app.
 
-The app icon, Business and pages category, privacy URL and deletion-instructions URL are saved in Meta. Public disclosures identify the company and use the brand email. No company PAN, TAN, certificate or private credentials belong in public pages or review recordings.
+The app icon, Business and pages category, privacy URL and deletion-instructions URL are saved in Meta. The Website platform has Site URL https://app.replylane.si/. Public disclosures identify the company and use the brand email. No company PAN, TAN, certificate or private credentials belong in public pages or review recordings.
 
 ## Reviewer access
 
@@ -34,7 +34,7 @@ node scripts/revoke-review-invite.mjs /private/tmp/replylane-review-invitation.j
 
 ## Draft reviewer instructions
 
-Save these steps in Meta only after adding the private invitation and confirming that the real comment flow works. These instructions do not certify that missing tests or recordings have been completed.
+Save these steps in Meta with the private invitation. The owner has confirmed that both real comment and incoming-DM automatic replies arrived. These instructions do not certify that missing recordings or Meta's permission prechecks have been completed.
 
 1. Open https://app.replylane.si/ and choose **Continue with Instagram**. Sign in with an Instagram Business or Creator account and approve the requested profile, comment and messaging access. Replylane does not ask for or receive your Instagram password.
 2. After returning, verify that the connected username, profile and account details match your Instagram account. Open https://app.replylane.si/review-access and enter the invitation supplied privately with the submission. Open your workspace; the review-trial panel shows the remaining allowance and expiry. No payment details are required.
@@ -49,16 +49,16 @@ Save these steps in Meta only after adding the private invitation and confirming
 
 Replylane helps the owner of an Instagram professional account send a reply that a commenter requested. After Instagram Login, the owner creates an automation, loads their own posts or reels, chooses the post and keyword, and writes the private reply. Rules are saved as drafts and send only after the owner enables them and has sending access.
 
-`instagram_business_manage_comments` is needed to receive the connected account's comment webhook events and identify the comment, its text and its post for the owner's keyword rule. Replylane checks the webhook signature, account ownership, post selection, keyword match, duplicate events and opt-outs before queuing a reply. The private message is sent with the messaging permission and the comment identifier through Instagram's official API. The app does not post public comments, scrape unrelated profiles or send cold outreach. It uses the owner's written text, not an AI-generated response.
+`instagram_business_manage_comments` is needed to receive the connected account's comment webhook events and identify the comment, its text and its post for the owner's keyword rule. Replylane checks the webhook signature, account ownership, post selection, keyword match, duplicate events and opt-outs before queuing a reply. It sends the private reply through Instagram's Private Replies API using the comment identifier. Incoming DM automation separately uses `instagram_business_manage_messages`. The app does not post public comments, scrape unrelated profiles or send cold outreach. It uses the owner's written text, not an AI-generated response.
 
 To reproduce: create and enable a comment rule on a post you control; comment its keyword from a second account; check the one private reply in Instagram and the real event in Activity. The in-app simulation is distinct from a real delivery and must not be used as evidence that the API test passed.
 
-## Evidence still needed
+## Evidence and remaining requirements
 
-- Developer account confirmation, followed by a fresh status check in Meta.
-- Company verification approval, then Tech Provider access verification.
+- Developer confirmation is complete and company verification is approved. Tech Provider access is in review.
+- Both real incoming-DM and comment-to-DM replies were accepted by Instagram and confirmed received by the owner. Production Activity records the real deliveries separately from simulations. The approved brand test post is https://www.instagram.com/p/DehhJOCE1_s/. The active **Meta comment review test** rule matches **REPLYLANETEST** and is now restricted to that post, media ID `18117295805282423`.
+- A real GET request for the test comment's `id,media,text,timestamp` returned HTTP 200 on 16 October 2026 (India), with the correct media and keyword. Meta's permission API precheck still needs a fresh native-dashboard check; its count can update later. Do not replace this requirement with a simulated event.
 - Accurate processor countries, including applicable provider access outside the selected database/function region. Vercel and Turso process the deployed app's data; the actual locations must be confirmed from provider records. Do not treat Mumbai deployment alone as proof of India-only processing.
-- The operator's factual answer about national-security disclosures during the previous 12 months, and confirmation of the practices actually in place. `DATA-REQUESTS.md` remains a draft pending adoption; writing it does not establish past practices.
-- Real comment-to-DM delivery and Meta's required API precheck. The approved brand test post is https://www.instagram.com/reply.lane/p/DehhJOCE1_s/. The separate **Meta comment review test** rule was created paused and is now enabled for keyword **REPLYLANETEST**, with no post filter. The owner has one published post. A matching comment and DM from the test sender are visible in Instagram, but production request logs show no Instagram webhook POSTs during the checked hour. Loading posts returned Meta's **API access blocked** error after the developer confirmation prompt. Both the DM and comment rules are enabled; do not claim the new end-to-end test passed. Recheck delivery and select the specific post once API access is restored.
-- An authorized end-to-end screencast showing the real OAuth consent, profile import, selected post, configured rules and actual Instagram delivery. Do not include credentials, invitation codes, unrelated inbox content or simulated delivery presented as real.
+- The operator confirmed no national-security disclosures in the preceding 12 months and adopted `DATA-REQUESTS.md` with the restricted local records folder. The draft questionnaire now contains that No answer and all four adopted processes. These are the operator's factual confirmations, not an independent audit or a claim about practices before adoption.
+- An authorized end-to-end screencast showing the real OAuth consent, profile import, selected post, configured rules and actual Instagram delivery. Scoped recording is approved; the finished video must be offered for the operator's review before upload. Do not include credentials, invitation codes, unrelated inbox content or simulated delivery presented as real.
 - Save the remaining allowed-use descriptions, complete the data-handling answers, inspect all required checkboxes, and submit only when Meta enables submission.
