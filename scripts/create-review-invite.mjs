@@ -8,7 +8,9 @@ const path = process.argv[2];
 if (!path?.startsWith("/private/tmp/")) throw new Error("Supply a new /private/tmp/ file for the private review invitation.");
 const file = await open(path, "wx", 0o600);
 const code = randomBytes(32).toString("base64url"), hash = createHash("sha256").update(code).digest("hex");
-const now = Date.now(), expiresAt = now + 30 * 86400000;
+// Meta requires access codes to remain valid for a year after submission. Keep
+// a 30-day preparation margin; the three claims and bounded trials still apply.
+const now = Date.now(), expiresAt = now + 395 * 86400000;
 const db = createClient({ url: process.env.TURSO_DATABASE_URL, authToken: process.env.TURSO_AUTH_TOKEN });
 try {
   await file.writeFile(JSON.stringify({ code, codeHash: hash, url: "https://app.replylane.si/review-access", expiresAt: new Date(expiresAt).toISOString(), maxAccounts: 3 }, null, 2) + "\n");
