@@ -98,7 +98,11 @@ test("Instagram and billing show honest setup states",async({page})=>{
   await page.getByRole("button",{name:"Close",exact:true}).click();
   await navigate(page,"Settings");
  }
- await expect(page.getByRole("heading",{name:"Launch checklist"})).toBeVisible();
+ await expect(page.getByRole("heading",{name:"Your account readiness"})).toBeVisible();
+ const privacy=page.getByRole("navigation",{name:"Privacy and support"});
+ await expect(privacy.getByRole("link",{name:"Privacy notice",exact:true})).toHaveAttribute("href","/privacy");
+ await expect(privacy.getByRole("link",{name:"Data deletion instructions",exact:true})).toHaveAttribute("href","/data-deletion");
+ await expect(privacy.getByRole("link",{name:"Contact support",exact:true})).toHaveAttribute("href","mailto:hello@replylane.si");
  await navigate(page,"Plan & billing");
  await expect(page.getByText("$2.99",{exact:false}).first()).toBeVisible();
  await expect(page.getByText("$24.99",{exact:false}).first()).toBeVisible();

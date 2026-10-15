@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <rect width="1080" height="1080" fill="#f4efe5"/>
+  <g transform="translate(82 76) scale(1.18)">
+    <g fill="none" stroke="#292b25" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5">
+      <path d="M16 18h14c9 0 16 7 16 16v12"/><path d="M16 30h11c5 0 9 4 9 9v7"/><path d="M16 42h8v4"/>
+    </g>
+    <circle cx="47" cy="17" r="5" fill="#b75a3c"/>
+  </g>
+  <text x="170" y="127" font-family="Arial, sans-serif" font-size="38" font-weight="700" fill="#292b25">ReplyLane<tspan fill="#b75a3c">.si</tspan></text>
+  <path d="M82 187h916" stroke="#d4d5c5" stroke-width="2"/>
+  <text x="84" y="270" font-family="Arial, sans-serif" font-size="19" letter-spacing="3" fill="#6b745c">A SMALL TEST. A USEFUL CONVERSATION.</text>
+  <text x="77" y="399" font-family="Georgia, serif" font-size="103" fill="#292b25">One comment.</text>
+  <text x="77" y="518" font-family="Georgia, serif" font-size="103" font-style="italic" fill="#68735a">A useful reply.</text>
+  <text x="84" y="612" font-family="Arial, sans-serif" font-size="28" fill="#5d6752">We’re testing comment-to-DM automation.</text>
+  <rect x="82" y="676" width="916" height="117" rx="14" fill="#b75a3c"/>
+  <text x="540" y="749" text-anchor="middle" font-family="Arial, sans-serif" font-size="37" font-weight="700" fill="#fffaf1">Comment REPLYLANETEST</text>
+  <text x="84" y="869" font-family="Arial, sans-serif" font-size="25" fill="#5d6752">Receive one automated test DM from @reply.lane.</text>
+  <text x="84" y="914" font-family="Arial, sans-serif" font-size="25" fill="#5d6752">Reply STOP to opt out.</text>
+  <path d="M82 969h916" stroke="#d4d5c5" stroke-width="2"/>
+  <text x="84" y="1022" font-family="Arial, sans-serif" font-size="21" fill="#6b745c">YOUR WORDS. A LITTLE MORE REACH.</text>
+  <text x="998" y="1022" text-anchor="end" font-family="Arial, sans-serif" font-size="23" fill="#b75a3c">replylane.si</text>
+</svg>

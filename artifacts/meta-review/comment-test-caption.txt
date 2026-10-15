@@ -1,0 +1,6 @@
+We’re testing Replylane’s comment-to-DM feature.
+
+Comment REPLYLANETEST below to receive one automated test message from @reply.lane. Reply STOP to opt out.
+
+Learn about Replylane: https://replylane.si/
+Privacy: https://replylane.si/privacy
