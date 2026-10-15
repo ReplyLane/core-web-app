@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <title>Replylane profile logo</title>
+  <desc>Replylane's three conversation lanes and clay-colored dot on a cream background.</desc>
+  <rect width="1080" height="1080" fill="#f4efe5"/>
+  <g transform="translate(180 204) scale(18)" fill="none">
+    <path d="M5 10h11c8 0 8 20 16 20h3M5 20h10c8 0 9 10 17 10M5 30h30" stroke="#292b25" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="32" cy="10" r="4" fill="#b75a3c"/>
+  </g>
+</svg>
