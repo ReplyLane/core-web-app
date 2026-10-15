@@ -1,6 +1,6 @@
 import {scheduleDelivery} from "@/lib/delivery-queue";
 import {constantEqual,db,handle,hmac,HttpError,json,runtime,settings} from "@/lib/server";
-import {matchRule,eligibleWindow,isOptOut,eventTimestamp} from "@/lib/rules";
+import {matchRule,matchedKeyword,eligibleWindow,isOptOut,eventTimestamp} from "@/lib/rules";
 import {deliverOne} from "@/lib/delivery";
 export function GET(request:Request){const p=new URL(request.url).searchParams,secret=runtime().META_WEBHOOK_VERIFY_TOKEN;if(secret&&p.get("hub.mode")==="subscribe"&&constantEqual(p.get("hub.verify_token")||"",secret))return new Response(p.get("hub.challenge")||"");return json({error:"Verification failed."},403);}
 export function POST(request:Request){return handle(async()=>{
@@ -18,8 +18,8 @@ export function POST(request:Request){return handle(async()=>{
  const touched=new Set<string>();
  for(const entry of payload.entry){
   const account=await db().prepare("SELECT user_id,instagram_id,provider FROM accounts WHERE instagram_id=?").bind(String(entry.id)).first<{user_id:string;instagram_id:string;provider:string}>();if(!account||(account.provider==="facebook"?!validFacebook:!validInstagram))continue;
-  const changes=(Array.isArray(entry.changes)?entry.changes:[]).filter((c:Record<string,any>)=>c.field==="comments").map((c:Record<string,any>)=>({id:String(c.value?.id||""),text:String(c.value?.text||""),recipient:String(c.value?.id||""),sender:String(c.value?.from?.id||""),mediaId:String(c.value?.media?.id||""),trigger:"comment",timestamp:eventTimestamp(c.value?.created_time??entry.time)}));
-  const messages=(Array.isArray(entry.messaging)?entry.messaging:[]).filter((m:Record<string,any>)=>m.message?.text&&!m.message?.is_echo&&String(m.sender?.id)!==account.instagram_id).map((m:Record<string,any>)=>({id:String(m.message.mid||""),text:String(m.message.text),recipient:String(m.sender?.id||""),sender:String(m.sender?.id||""),mediaId:"",trigger:"message",timestamp:eventTimestamp(m.timestamp)}));
+  const changes=(Array.isArray(entry.changes)?entry.changes:[]).filter((c:Record<string,any>)=>c.field==="comments").map((c:Record<string,any>)=>({id:String(c.value?.id||""),text:String(c.value?.text||""),recipient:String(c.value?.id||""),sender:String(c.value?.from?.id||""),senderUsername:String(c.value?.from?.username||"").slice(0,100),mediaId:String(c.value?.media?.id||""),trigger:"comment",timestamp:eventTimestamp(c.value?.created_time??entry.time)}));
+  const messages=(Array.isArray(entry.messaging)?entry.messaging:[]).filter((m:Record<string,any>)=>m.message?.text&&!m.message?.is_echo&&String(m.sender?.id)!==account.instagram_id).map((m:Record<string,any>)=>({id:String(m.message.mid||""),text:String(m.message.text),recipient:String(m.sender?.id||""),sender:String(m.sender?.id||""),senderUsername:String(m.sender?.username||"").slice(0,100),mediaId:"",trigger:"message",timestamp:eventTimestamp(m.timestamp)}));
   for(const event of [...changes,...messages]){
    if(!event.id||!event.recipient||!event.sender||event.sender===account.instagram_id||!eligibleWindow(event.trigger,event.timestamp))continue;
    if(event.trigger==="message"&&isOptOut(event.text)){
@@ -30,7 +30,7 @@ export function POST(request:Request){return handle(async()=>{
    const campaigns=await db().prepare("SELECT * FROM campaigns WHERE user_id=? AND enabled=1 AND trigger=? ORDER BY created_at,id").bind(account.user_id,event.trigger).all<Record<string,any>>();
    const selected=campaigns.results.find(c=>(!c.media_id||c.media_id===event.mediaId)&&matchRule({message:c.message,link:c.link,keywords:JSON.parse(c.keywords)},event.text).matched);if(!selected)continue;
    touched.add(account.user_id);
-   await db().prepare("INSERT INTO activities(id,user_id,campaign_id,campaign_name,text,status,created_at,test,recipient,trigger,event_at,sender_id) VALUES(?,?,?,?,?,'queued',?,0,?,?,?,?) ON CONFLICT(id) DO NOTHING").bind(account.instagram_id+":"+event.trigger+":"+event.id,account.user_id,selected.id,selected.name,event.text.slice(0,1000),Date.now(),event.recipient,event.trigger,event.timestamp,event.sender).run();
+   await db().prepare("INSERT INTO activities(id,user_id,campaign_id,campaign_name,text,status,created_at,test,recipient,trigger,event_at,sender_id,media_id,sender_username,matched_keyword,reply_text) VALUES(?,?,?,?,?,'queued',?,0,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING").bind(account.instagram_id+":"+event.trigger+":"+event.id,account.user_id,selected.id,selected.name,event.text.slice(0,1000),Date.now(),event.recipient,event.trigger,event.timestamp,event.sender,event.mediaId,event.senderUsername,matchedKeyword(JSON.parse(selected.keywords),event.text),selected.message+(selected.link?"\n\n"+selected.link:"")).run();
   }
  }
  await deliverOne();

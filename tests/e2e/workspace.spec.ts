@@ -57,7 +57,7 @@ test("create, persist, edit, test, search, and delete an automation",async({page
  await page.getByRole("button",{name:"Close",exact:true}).click();
  await navigate(page,"Activity");
  await expect(page.getByRole("table")).toContainText(name);
- await expect(page.getByRole("table")).toContainText("test matched");
+ await expect(page.getByRole("table")).toContainText("Test matched");
  await navigate(page,"Automations");
  await page.getByLabel("Search automations").fill("zz-no-match");
  await expect(page.getByRole("heading",{name:"No matching automations"})).toBeVisible();
@@ -112,7 +112,7 @@ test("Instagram and billing show honest setup states",async({page})=>{
 });
 
 test("navigation is usable on mobile with no page overflow",async({page})=>{
- for(const view of ["Market research","Plan & billing","Settings","Automations"]){
+ for(const view of ["Activity","Plan & billing","Settings","Automations"]){
   await navigate(page,view);
   await expect(page.locator(".breadcrumb strong")).toHaveText(view);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);

@@ -36,7 +36,9 @@ export async function deliverOne(userId?:string) {
   return finish("limit_reached","Trial expired or its 25-DM allowance was reached.");
  }
  try {
-  const response=await fetch(`${graphHost(account.provider)}/${runtime().META_API_VERSION}/${account.instagram_id}/messages`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({recipient:row.trigger==="comment"?{comment_id:row.recipient}:{id:row.recipient},message:{text:campaign.message+(campaign.link?"\n\n"+campaign.link:"")}}),signal:AbortSignal.timeout(12000)});
+  const replyText=campaign.message+(campaign.link?"\n\n"+campaign.link:"");
+  await store.prepare("UPDATE activities SET reply_text=? WHERE id=? AND status='processing'").bind(replyText,row.id).run();
+  const response=await fetch(`${graphHost(account.provider)}/${runtime().META_API_VERSION}/${account.instagram_id}/messages`,{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({recipient:row.trigger==="comment"?{comment_id:row.recipient}:{id:row.recipient},message:{text:replyText}}),signal:AbortSignal.timeout(12000)});
   if(!response.ok){
    // Server errors have ambiguous outcomes; retain the reservation and require review.
    if(response.status>=500)return finish("needs_review","Instagram returned a server error. Not retried; allowance is reserved.");
@@ -44,6 +46,10 @@ export async function deliverOne(userId?:string) {
    if(trial)await releaseTrial(row.user_id,trialKind);
    return finish("failed",`Instagram rejected the message (${response.status}).`);
   }
-  return finish("sent","Instagram accepted the message.");
+  const acceptedAt=Date.now();
+  const receipt=await response.json().catch(()=>null) as {message_id?:unknown}|null;
+  const messageId=typeof receipt?.message_id==="string"?receipt.message_id.slice(0,2000):"";
+  await store.prepare("UPDATE activities SET status='sent',reason='Instagram accepted the message.',accepted_at=?,instagram_message_id=? WHERE id=? AND status='processing'").bind(acceptedAt,messageId,row.id).run();
+  return {status:"sent"};
  } catch {return finish("needs_review","Delivery confirmation is unavailable. Not retried to avoid duplicate DMs; allowance is reserved.");}
 }

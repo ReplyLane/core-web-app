@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronDown, Heart, Camera as Instagram, Link2, MessageCircle, Pause, SlidersHorizontal } from "lucide-react";
 import { LaneMark, ReplyLaneBrand } from "@/components/replylane-brand";
+import { MarketResearch } from "@/components/market-research";
 
 const appUrl = "https://app.replylane.si";
 const examples = [
@@ -39,7 +40,7 @@ export default function LandingPage() {
     <a className="lane-skip-link" href="#main-content">Skip to content</a>
     <header className="marketing-nav marketing-width">
       <Link href="/" className="lane-home-link" aria-label="ReplyLane.si home"><ReplyLaneBrand/></Link>
-      <nav aria-label="Main navigation"><a href="#how-it-works">The simple part</a><a href="#our-approach">Our approach</a><a href="#pricing">Pricing</a></nav>
+      <nav aria-label="Main navigation"><a href="#how-it-works">The simple part</a><a href="#our-approach">Our approach</a><a href="#pricing">Pricing</a><a href="#market-research">Market research</a></nav>
       <a className="lane-button lane-button-small lane-button-outline" href={appUrl}>Open app <ArrowUpRight size={15}/></a>
     </header>
 
@@ -79,6 +80,8 @@ export default function LandingPage() {
 
       <section className="lane-pricing marketing-width" id="pricing" aria-labelledby="pricing-title"><div className="lane-pricing-heading"><div className="lane-kicker">03 / A LITTLE MORE ROOM</div><h2 id="pricing-title">Simple plans.<br/><em>Same thoughtful tools.</em></h2><p>One Instagram account. 1,000 automated DMs each month. No per-contact charges.</p><ul>{["Comment-to-DM & keyword replies", "Up to 100 saved automations", "Message preview & test console", "No ReplyLane.si branding in your messages"].map(feature => <li key={feature}><Check size={15}/>{feature}</li>)}</ul></div><div className="lane-price-options"><div className="lane-price-option"><div><span className="lane-kicker">KEEP IT FLEXIBLE</span><h3>Monthly</h3></div><div className="lane-price">$2.99<span>USD / month</span></div><p>Billed monthly. Cancel renewal anytime.</p><a href={appUrl} className="lane-button lane-button-outline">Choose monthly <ArrowUpRight size={16}/></a></div><div className="lane-price-option lane-price-annual"><div><span className="lane-kicker">SETTLE IN · SAVE 30%</span><h3>Yearly</h3></div><div className="lane-price">$24.99<span>USD / year</span></div><p>About $2.08 per month, billed annually.</p><a href={appUrl} className="lane-button lane-button-primary">Choose yearly <ArrowUpRight size={16}/></a></div><p className="lane-pricing-note">Choose your plan in the app. Checkout availability and payment options depend on the gateway setup. Live sending requires an eligible account and platform permissions.</p></div></section>
 
+      <MarketResearch/>
+
       <section className="marketing-faq marketing-width" id="questions" aria-labelledby="questions-title"><div><div className="lane-kicker">A FEW THINGS TO KNOW</div><h2 id="questions-title">Before you<br/><em>pick your lane.</em></h2><a className="marketing-text-link" href="mailto:hello@replylane.si">Let’s talk <ArrowUpRight size={15}/></a></div><div className="marketing-faq-items">
         <details><summary>What does Super Intelligence mean here?<ChevronDown size={17}/></summary><p>It’s our approach to useful, thoughtful automation: less repetitive work, with a person in control. ReplyLane.si matches keywords and sends messages you write. Your voice and judgment stay at the centre.</p></details>
         <details><summary>Which Instagram accounts can connect?<ChevronDown size={17}/></summary><p>Instagram Business and Creator accounts can connect through Instagram’s authorization screen. You choose the access to approve. Your Instagram password stays with Instagram. Direct Instagram sign-in does not require a linked Facebook Page.</p></details>
@@ -90,6 +93,6 @@ export default function LandingPage() {
       <section className="marketing-final marketing-width"><div><div className="lane-kicker">GOOD THINGS START WITH A REPLY.</div><h2>Make room for<br/><em>the human part.</em></h2></div><div><a href={appUrl} className="lane-button lane-button-primary">Find your lane <ArrowUpRight size={18}/></a><p>Connect. Write. Preview.<br/>Take it from there.</p></div><div className="lane-final-line" aria-hidden="true"><span/><span/><span/></div></section>
     </main>
 
-    <footer className="marketing-footer marketing-width"><Link href="/" className="lane-home-link" aria-label="ReplyLane.si home"><ReplyLaneBrand/></Link><span>Super Intelligence. Human intention.</span><div><a href="https://www.instagram.com/reply.lane/" target="_blank" rel="noreferrer">Instagram <ArrowUpRight size={12}/></a><a href="mailto:hello@replylane.si">Contact</a><Link href="/privacy">Privacy</Link><Link href="/data-deletion">Data deletion</Link><a href={appUrl}>Open app <ArrowUpRight size={12}/></a></div><p className="marketing-operator">Replylane is operated by BlockC School Private Limited, India.</p></footer>
+    <footer className="marketing-footer marketing-width"><Link href="/" className="lane-home-link" aria-label="ReplyLane.si home"><ReplyLaneBrand/></Link><span>Super Intelligence. Human intention.</span><div><a href="https://www.instagram.com/reply.lane/" target="_blank" rel="noreferrer">Instagram <ArrowUpRight size={12}/></a><a href="mailto:hello@replylane.si">Contact</a><a href="#market-research">Market research</a><Link href="/privacy">Privacy</Link><Link href="/data-deletion">Data deletion</Link><a href={appUrl}>Open app <ArrowUpRight size={12}/></a></div><p className="marketing-operator">Replylane is operated by BlockC School Private Limited, India.</p></footer>
   </div>;
 }

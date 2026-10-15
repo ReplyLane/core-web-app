@@ -43,6 +43,13 @@
       "when": 1792086245420,
       "tag": "0005_lush_earthquake",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792093243236,
+      "tag": "0006_ambiguous_shooting_star",
+      "breakpoints": true
     }
   ]
 }
