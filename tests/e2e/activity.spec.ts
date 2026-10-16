@@ -1,9 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { signIn, cleanUp, testUser } from "./session";
+
+async function chooseFilter(page: Page, name: string, option: string) {
+  await page.getByRole("combobox", { name, exact: true }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
 
 test.describe("Detailed activity", () => {
   test.beforeEach(async ({ context, page }) => {
@@ -33,8 +38,8 @@ test.describe("Detailed activity", () => {
   test.afterEach(() => cleanUp());
 
   test("filters per automation and exposes the actual event, reply and timing", async ({ page }, testInfo) => {
-    await page.getByLabel("Filter by automation").selectOption({ label: "Guide giveaway" });
-    await page.getByLabel("Filter by outcome").selectOption("sent");
+    await chooseFilter(page, "Filter by automation", "Guide giveaway");
+    await chooseFilter(page, "Filter by outcome", "Sent to Instagram");
     await expect(page.getByRole("region", { name: "Selected automation details" })).toContainText("Current keywords");
     await expect(page.getByRole("table")).not.toContainText("Hours reply");
     await page.getByRole("button", { name: /^Show details for Guide giveaway/ }).click();
@@ -46,7 +51,7 @@ test.describe("Detailed activity", () => {
     await page.screenshot({ path: `outputs/qa/activity-${testInfo.project.name}.png`, fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("button", { name: "Clear filters", exact: true }).click();
-    await page.getByLabel("Filter by source").selectOption("test");
+    await chooseFilter(page, "Filter by source", "Simulations only");
     await expect(page.getByRole("table")).toContainText("Test matched");
     await expect(page.getByRole("table")).not.toContainText("Sent to Instagram");
     await page.getByLabel("Search activity").fill("not-a-real-message");
@@ -57,18 +62,57 @@ test.describe("Detailed activity", () => {
     await expect(page.getByText("Page 1 of 2", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Next activity page", exact: true }).click();
     await expect(page.getByText("Page 2 of 2", { exact: true })).toBeVisible();
-    await page.getByLabel("Filter by automation").selectOption({ label: "Archived giveaway (deleted)" });
+    await chooseFilter(page, "Filter by automation", "Archived giveaway (deleted)");
     await expect(page.getByRole("region", { name: "Selected automation details" })).toContainText("This automation was deleted");
     const refreshed = page.waitForResponse(r => r.url().includes("/api/activity?") && r.request().method() === "GET");
     await page.getByRole("button", { name: "Refresh activity", exact: true }).click();
     expect((await refreshed).status()).toBe(200);
     await expect(page.getByRole("table")).toContainText("Archived giveaway");
-    await page.getByLabel("Filter by date").selectOption("custom");
+    await chooseFilter(page, "Filter by date", "Custom dates");
     await page.getByLabel("Activity start date").fill("2040-01-02");
     await page.getByLabel("Activity end date").fill("2040-01-01");
     await expect(page.getByRole("region", { name: "Activity filters" }).getByRole("alert")).toContainText("Choose an end date");
     await page.getByLabel("Activity end date").fill("2040-01-03");
     await expect(page.getByRole("heading", { name: "No activity matches these filters" })).toBeVisible();
+  });
+
+  test("keeps dropdowns anchored, bounded and keyboard accessible", async ({ page }, testInfo) => {
+    await expect(page.getByRole("region", { name: "Activity filters" }).getByRole("combobox")).toHaveCount(5);
+    await chooseFilter(page, "Filter by automation", "Guide giveaway");
+    const automation = page.getByRole("combobox", { name: "Filter by automation", exact: true });
+    await automation.click();
+    const menu = page.getByRole("listbox");
+    await expect(menu).toBeVisible();
+    await expect(page.getByRole("option", { name: "Guide giveaway", exact: true })).toHaveAttribute("aria-selected", "true");
+    // Radix hides the background from assistive technology while its menu is open.
+    await expect.poll(async () => Math.abs((await menu.boundingBox())!.width - (await page.locator("#activity-automation").boundingBox())!.width)).toBeLessThanOrEqual(2);
+    const triggerBox = (await page.locator("#activity-automation").boundingBox())!, menuBox = (await menu.boundingBox())!, viewport = page.viewportSize()!;
+    expect(Math.abs(menuBox.x - triggerBox.x)).toBeLessThanOrEqual(2);
+    expect(Math.abs(menuBox.width - triggerBox.width)).toBeLessThanOrEqual(2);
+    expect(menuBox.y).toBeGreaterThanOrEqual(triggerBox.y + triggerBox.height);
+    expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(viewport.height - 10);
+    expect(menuBox.x + menuBox.width).toBeLessThanOrEqual(viewport.width - 10);
+    mkdirSync("outputs/qa", { recursive: true });
+    await page.screenshot({ path: `outputs/qa/activity-dropdown-${testInfo.project.name}.png` });
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(automation).toBeFocused();
+    const trigger = page.getByRole("combobox", { name: "Filter by trigger", exact: true });
+    await trigger.press("Enter");
+    await expect(menu).toBeVisible();
+    await expect(page.getByRole("option", { name: "All triggers", exact: true })).toBeFocused();
+    await page.keyboard.press("End");
+    await expect(page.getByRole("option", { name: "Keyword DM", exact: true })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(trigger).toHaveText("Keyword DM");
+    await chooseFilter(page, "Filter by automation", "All automations");
+    await expect(page.getByRole("table")).toContainText("Hours reply");
+    await page.getByRole("combobox", { name: "Filter by outcome", exact: true }).click();
+    await expect(menu).toBeVisible();
+    expect((await menu.boundingBox())!.height).toBeLessThanOrEqual(300);
+    await page.getByRole("option", { name: "Test did not match", exact: true }).click();
+    await expect(menu).toBeHidden();
+    await expect(page.getByRole("combobox", { name: "Filter by outcome", exact: true })).toHaveText("Test did not match");
   });
 });
 
